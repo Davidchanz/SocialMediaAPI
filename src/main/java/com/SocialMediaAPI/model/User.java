@@ -8,10 +8,10 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -27,29 +27,16 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 25)
-    @Size(min = 5, max = 25)
     @NotBlank
     private String username;
 
-    @Column(nullable = false, length = 25)
-    @Size(min = 8, max = 25)
+    @Column(nullable = false)
     @NotBlank
     private String password;
 
-   /* @Column(length = 25)
-    @Size(min = 5, max = 25)
-    @NotBlank
-    private String firstName;
-
-    @Column(length = 25)
-    @Size(min = 5, max = 25)
-    @NotBlank
-    private String lastName;
-
     @Column(unique = true, nullable = false)
-    @Size(min = 8, max = 255)
     @NotBlank
-    private String email;*/
+    private String email;
 
     @JsonIgnore
     @Override
