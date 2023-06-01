@@ -1,17 +1,13 @@
 package com.SocialMediaAPI.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.v3.oas.annotations.Operation;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -27,15 +23,15 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 25)
-    @NotBlank
+    @NotNull
     private String username;
 
     @Column(nullable = false)
-    @NotBlank
+    @NotNull
     private String password;
 
     @Column(unique = true, nullable = false)
-    @NotBlank
+    @NotNull
     private String email;
 
     @JsonIgnore
