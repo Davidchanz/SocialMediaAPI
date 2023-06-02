@@ -34,8 +34,8 @@ public class UserService implements UserDetailsService {
         return new BCryptPasswordEncoder().encode(password);
     }
 
-    public Optional<User> findUserByUserName(String userName){
-        return userRepository.findByUsername(userName);
+    public User findUserByUserName(String userName){
+        return userRepository.findByUsername(userName).orElseThrow(() -> new UsernameNotFoundException("Could not found a user with given name"));
     }
 
     @Override
