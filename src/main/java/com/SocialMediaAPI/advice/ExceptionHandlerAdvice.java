@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,25 +55,34 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
             RuntimeException ex, WebRequest request) {
         ApiErrorDto errorDto = new ApiErrorDto();
         errorDto.setErrors(List.of(ex.getMessage() + ", max file size 10MB, max post size 50MB"));
-        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(value = {ImageNotFoundException.class})
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     protected ResponseEntity<Object> handleImageNotFound(
             RuntimeException ex, WebRequest request) {
         ApiErrorDto errorDto = new ApiErrorDto();
         errorDto.setErrors(List.of(ex.getMessage()));
-        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 
     @ExceptionHandler(value = {PostNotFoundException.class})
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     protected ResponseEntity<Object> handlePostNotFound(
             RuntimeException ex, WebRequest request) {
         ApiErrorDto errorDto = new ApiErrorDto();
         errorDto.setErrors(List.of(ex.getMessage()));
-        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @ExceptionHandler(value = {UsernameNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    protected ResponseEntity<Object> handleUsernameNotFound(
+            RuntimeException ex, WebRequest request) {
+        ApiErrorDto errorDto = new ApiErrorDto();
+        errorDto.setErrors(List.of(ex.getMessage()));
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 
 }

@@ -3,7 +3,10 @@ package com.SocialMediaAPI.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -33,4 +36,7 @@ public class Post {
 
     @ManyToOne
     private User user;
+
+    @CreationTimestamp
+    private Instant created;
 }

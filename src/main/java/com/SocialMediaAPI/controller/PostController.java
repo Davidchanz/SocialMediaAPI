@@ -9,6 +9,7 @@ import com.SocialMediaAPI.service.ImageService;
 import com.SocialMediaAPI.service.PostService;
 import com.SocialMediaAPI.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.List;
 
 @RestController
 public class PostController {
@@ -42,7 +44,9 @@ public class PostController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get created Post",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Post.class)) })})
+                            schema = @Schema(implementation = Post.class)) }
+            )
+    })
 
     @PostMapping("/createPost")
     public Post createPost(@RequestPart(value = "image[]", required = false) MultipartFile[] files, @RequestPart(value = "post") PostDto postDto, Principal principal) throws IOException {//TODO IOException
@@ -79,6 +83,33 @@ public class PostController {
             return new ResponseEntity<>("Post with id: " + id + " was deleted!", HttpStatus.OK);
         }
         return new ResponseEntity<>("You can delete only your own posts!", HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @Operation(summary = "Get post by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Show Post",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Post.class)) }
+            )
+    })
+
+    @GetMapping("/post")
+    public Post showPost(@RequestParam(value = "id") String id){
+        return postService.findPostById(Long.parseLong(id));
+    }
+
+    @Operation(summary = "Get all posts from user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Show All user posts",
+                    content = { @Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = Post.class))) }
+            )
+    })
+
+    @GetMapping("/user/posts")
+    public List<Post> showAllUsersPost(@RequestParam(value = "username") String username){
+        User user = userService.findUserByUserName(username);
+        return postService.findAllByUser(user);
     }
 
 }
