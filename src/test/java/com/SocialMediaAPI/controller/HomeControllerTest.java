@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.SocialMediaAPI.config.TestConfig;
 import com.SocialMediaAPI.configuration.SecurityConfig;
 import com.SocialMediaAPI.service.TokenService;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,7 +42,8 @@ class HomeControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String token = result.getResponse().getContentAsString();
+        JSONObject js = new JSONObject(result.getResponse().getContentAsString());
+        String token = js.getString("token");
 
         this.mvc.perform(get("/")
                         .header("Authorization", "Bearer " + token))
