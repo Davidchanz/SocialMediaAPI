@@ -38,4 +38,8 @@ public class PostService {
     public List<Post> findAllByUser(User user) {
         return postRepository.findAllByUser(user);
     }
+
+    public void savePost(Post post) {
+        postRepository.save(post);
+    }
 }

@@ -81,8 +81,8 @@ public class PostController {
         if(Objects.equals(post.getUser().getId(), user.getId())){
             postService.deletePost(post);
             return new ResponseEntity<>("Post with id: " + id + " was deleted!", HttpStatus.OK);
-        }
-        return new ResponseEntity<>("You can delete only your own posts!", HttpStatus.METHOD_NOT_ALLOWED);
+        }else
+            return new ResponseEntity<>("You can delete only your own posts!", HttpStatus.METHOD_NOT_ALLOWED);
     }
 
     @Operation(summary = "Get post by id")
@@ -110,6 +110,44 @@ public class PostController {
     public List<Post> showAllUsersPost(@RequestParam(value = "username") String username){
         User user = userService.findUserByUserName(username);
         return postService.findAllByUser(user);
+    }
+
+    @Operation(summary = "Change Post, change images, header, text or nothing")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Post was changed",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Post.class)) }
+            ),
+            @ApiResponse(responseCode = "405", description = "Not allowed change this post",
+                    content = { @Content(mediaType = "text/plain",
+                            examples = @ExampleObject("You can change only your own posts!")) }
+            )
+    })
+
+    @PutMapping("/changePost")
+    public ResponseEntity<?> changePost(@RequestPart(value = "id") String id, @RequestPart(value = "image[]", required = false) MultipartFile[] files, @RequestPart(value = "post") PostDto postDto, Principal principal) throws IOException {//TODO Exception
+        User user = userService.findUserByUserName(principal.getName());
+
+        Post post = postService.findPostById(Long.parseLong(id));
+        if(Objects.equals(post.getUser().getId(), user.getId())){
+            post.setImages(new ArrayList<>());
+            postService.savePost(post);
+            for(var image: post.getImages()) {
+                imageService.deleteImage(image);//delete old images
+            }
+            ArrayList<Image> images = new ArrayList<>();
+            if(files != null)
+                for(var file: files) {
+                    images.add(imageService.uploadImage(file));//load new images
+                }
+            post.setHeader(postDto.getHeader());
+            post.setText(postDto.getText());
+            post.setImages(images);
+            postService.savePost(post);
+
+            return new ResponseEntity<>(post, HttpStatus.OK);
+        }else
+            return new ResponseEntity<>("You can change only your own post.", HttpStatus.METHOD_NOT_ALLOWED);
     }
 
 }

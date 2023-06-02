@@ -30,4 +30,7 @@ public class ImageService {
         return ImageUtils.decompressImage(image.orElseThrow(() -> new ImageNotFoundException("Image with id: " + id + " not found.")).getImageData());
     }
 
+    public void deleteImage(Image image) {
+        imageRepository.deleteById(image.getId());
+    }
 }
