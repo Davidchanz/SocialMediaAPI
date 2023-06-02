@@ -27,7 +27,7 @@ public class ImageService {
 
     public byte[] downloadImage(Long id) throws ImageNotFoundException {
         Optional<Image> image = imageRepository.findById(id);
-        return ImageUtils.decompressImage(image.orElseThrow(() -> new ImageNotFoundException("")).getImageData());
+        return ImageUtils.decompressImage(image.orElseThrow(() -> new ImageNotFoundException("Image with id: " + id + " not found.")).getImageData());
     }
 
 }

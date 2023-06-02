@@ -1,6 +1,8 @@
 package com.SocialMediaAPI.advice;
 
 import com.SocialMediaAPI.dto.ApiErrorDto;
+import com.SocialMediaAPI.exception.ImageNotFoundException;
+import com.SocialMediaAPI.exception.PostNotFoundException;
 import com.SocialMediaAPI.exception.UserAlreadyExistException;
 import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -52,6 +54,24 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
             RuntimeException ex, WebRequest request) {
         ApiErrorDto errorDto = new ApiErrorDto();
         errorDto.setErrors(List.of(ex.getMessage() + ", max file size 10MB, max post size 50MB"));
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = {ImageNotFoundException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    protected ResponseEntity<Object> handleImageNotFound(
+            RuntimeException ex, WebRequest request) {
+        ApiErrorDto errorDto = new ApiErrorDto();
+        errorDto.setErrors(List.of(ex.getMessage()));
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    @ExceptionHandler(value = {PostNotFoundException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    protected ResponseEntity<Object> handlePostNotFound(
+            RuntimeException ex, WebRequest request) {
+        ApiErrorDto errorDto = new ApiErrorDto();
+        errorDto.setErrors(List.of(ex.getMessage()));
         return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 

@@ -1,6 +1,7 @@
 package com.SocialMediaAPI.service;
 
 import com.SocialMediaAPI.dto.PostDto;
+import com.SocialMediaAPI.exception.PostNotFoundException;
 import com.SocialMediaAPI.model.Image;
 import com.SocialMediaAPI.model.Post;
 import com.SocialMediaAPI.model.User;
@@ -26,4 +27,11 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    public Post findPostById(Long id){
+        return postRepository.findById(id).orElseThrow(() -> new PostNotFoundException("Post with id: " + id + " not found."));
+    }
+
+    public void deletePost(Post post) {
+        postRepository.deleteById(post.getId());
+    }
 }

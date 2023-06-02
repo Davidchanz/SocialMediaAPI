@@ -10,6 +10,7 @@ import com.SocialMediaAPI.service.PostService;
 import com.SocialMediaAPI.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Objects;
 
 @RestController
 public class PostController {
@@ -53,6 +55,30 @@ public class PostController {
             }
 
         return postService.createPost(postDto, images, user);
+    }
+
+    @Operation(summary = "Delete post by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Post was deleted",
+                    content = { @Content(mediaType = "text/plain",
+                            examples = @ExampleObject("Post with id: post_id was deleted!")) }
+            ),
+            @ApiResponse(responseCode = "405", description = "Not allowed delete this Post",
+                    content = { @Content(mediaType = "text/plain",
+                            examples = @ExampleObject("You can delete only your own posts!")) }
+            )
+    })
+
+    @PostMapping("/deletePost")
+    public ResponseEntity<?> deletePost(@RequestParam(value = "id") String id, Principal principal){
+        User user = userService.findUserByUserName(principal.getName());
+
+        Post post = postService.findPostById(Long.parseLong(id));
+        if(Objects.equals(post.getUser().getId(), user.getId())){
+            postService.deletePost(post);
+            return new ResponseEntity<>("Post with id: " + id + " was deleted!", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("You can delete only your own posts!", HttpStatus.METHOD_NOT_ALLOWED);
     }
 
 }
