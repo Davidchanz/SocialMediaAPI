@@ -1,9 +1,7 @@
 package com.SocialMediaAPI.advice;
 
 import com.SocialMediaAPI.dto.ApiErrorDto;
-import com.SocialMediaAPI.exception.ImageNotFoundException;
-import com.SocialMediaAPI.exception.PostNotFoundException;
-import com.SocialMediaAPI.exception.UserAlreadyExistException;
+import com.SocialMediaAPI.exception.*;
 import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -40,11 +38,13 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(value = { UserAlreadyExistException.class})
+    @ExceptionHandler(value = {
+            UserAlreadyExistException.class,
+            EmailAlreadyExistException.class
+    })
     @ResponseStatus(HttpStatus.CONFLICT)
     protected ResponseEntity<Object> handleConflict(
             RuntimeException ex, WebRequest request) {
-
         String bodyOfResponse = ex.getMessage();
         return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), HttpStatus.CONFLICT, request);
     }
@@ -58,7 +58,13 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.CONFLICT, request);
     }
 
-    @ExceptionHandler(value = {ImageNotFoundException.class})
+    @ExceptionHandler(value = {
+            ImageNotFoundException.class,
+            PostNotFoundException.class,
+            UsernameNotFoundException.class,
+            NotificationNotFoundEcxeption.class,
+            ChatNotFoundException.class
+    })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     protected ResponseEntity<Object> handleImageNotFound(
             RuntimeException ex, WebRequest request) {
@@ -67,7 +73,7 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 
-    @ExceptionHandler(value = {PostNotFoundException.class})
+    /*@ExceptionHandler(value = {PostNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     protected ResponseEntity<Object> handlePostNotFound(
             RuntimeException ex, WebRequest request) {
@@ -84,5 +90,14 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         errorDto.setErrors(List.of(ex.getMessage()));
         return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
+
+    @ExceptionHandler(value = {NotificationNotFoundEcxeption.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    protected ResponseEntity<Object> handleNotificationNotFound(
+            RuntimeException ex, WebRequest request) {
+        ApiErrorDto errorDto = new ApiErrorDto();
+        errorDto.setErrors(List.of(ex.getMessage()));
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }*/
 
 }

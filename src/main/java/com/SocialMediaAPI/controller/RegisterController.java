@@ -1,8 +1,7 @@
 package com.SocialMediaAPI.controller;
 
 import com.SocialMediaAPI.dto.ApiErrorDto;
-import com.SocialMediaAPI.dto.UserDto;
-import com.SocialMediaAPI.exception.UserAlreadyExistException;
+import com.SocialMediaAPI.dto.UserAuthDto;
 import com.SocialMediaAPI.model.User;
 import com.SocialMediaAPI.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,8 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,11 +34,11 @@ public class RegisterController {
                     content = { @Content(mediaType = "text/plain",
                             examples = @ExampleObject("User with username: 'username' is already exist!")) }) })
     @PostMapping("/register")
-    public String register(@Valid @RequestBody UserDto userDto){
+    public String register(@Valid @RequestBody UserAuthDto userAuthDto){
         User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setPassword(userDto.getPassword());
-        user.setEmail(userDto.getEmail());
+        user.setUsername(userAuthDto.getUsername());
+        user.setPassword(userAuthDto.getPassword());
+        user.setEmail(userAuthDto.getEmail());
         userService.registerNewUserAccount(user);
         return "User '" + user.getUsername() + "' successfully created!";
     }

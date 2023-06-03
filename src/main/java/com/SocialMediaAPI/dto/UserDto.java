@@ -1,29 +1,40 @@
 package com.SocialMediaAPI.dto;
 
-import com.SocialMediaAPI.validation.annotation.PasswordMatches;
+import com.SocialMediaAPI.model.Chat;
+import com.SocialMediaAPI.model.ChatMessage;
+import com.SocialMediaAPI.model.Sender;
+import com.SocialMediaAPI.model.User;
+import com.SocialMediaAPI.service.ChatMessageService;
 import com.SocialMediaAPI.validation.annotation.ValidEmail;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-@Setter
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Getter
-@PasswordMatches
-public class UserDto {
-    @NotNull(message = "Username must not be null!")
-    @Size(min = 5, max = 25, message = "Username must be between 5 and 25!")
+@Setter
+public class UserDto implements Sender {
+    @NotNull
+    private Long id;
+
+    @NotNull
     private String username;
 
-    @NotNull(message = "Password must not be null!")
-    @Size(min = 8, max = 25, message = "Password must be between 8 and 25!")
-    private String password;
-
-    @NotNull(message = "Confirm Password must not be null!")
-    private String matchingPassword;
-
-    @ValidEmail
-    @NotNull(message = "Email must not be null!")
+    @NotNull
     private String email;
+
+    public static Sender createUserDto(Sender sender){
+        return sender.createDto();
+    }
+
+    @Override
+    public Sender createDto() {
+        return this;
+    }
 }
