@@ -7,6 +7,7 @@ import com.SocialMediaAPI.model.Post;
 import com.SocialMediaAPI.model.User;
 import com.SocialMediaAPI.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,11 +36,19 @@ public class PostService {
         postRepository.deleteById(post.getId());
     }
 
-    public List<Post> findAllByUser(User user) {
-        return postRepository.findAllByUser(user);
+    public List<Post> findAllByUserOrderByCreatedDesc(User user) {
+        return postRepository.findAllByUserOrderByCreatedDesc(user);
     }
 
-    public void savePost(Post post) {
-        postRepository.save(post);
+    public Post savePost(Post post) {
+        return postRepository.save(post);
+    }
+
+    public List<Post> findAllActivityFeedPostsOrderByCreatedDesc(User user) {
+        return postRepository.findAllActivityFeedPostsOrderByCreatedDesc(user);
+    }
+
+    public List<Post> findAllActivityFeedPostsOrderByCreatedDescPageable(User user, Pageable page) {
+        return postRepository.findAllActivityFeedPostsOrderByCreatedDescPageable(user, page);
     }
 }

@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.List;
 
 @RestController
 public class PostController {
@@ -44,12 +43,12 @@ public class PostController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get created Post",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Post.class)) }
+                            schema = @Schema(implementation = PostDto.class)) }
             )
     })
 
     @PostMapping("/createPost")
-    public Post createPost(@RequestPart(value = "image[]", required = false) MultipartFile[] files, @RequestPart(value = "post") PostDto postDto, Principal principal) throws IOException {//TODO IOException
+    public ResponseEntity<?> createPost(@RequestPart(value = "image[]", required = false) MultipartFile[] files, @RequestPart(value = "post") PostDto postDto, Principal principal) throws IOException {//TODO IOException
         User user = userService.findUserByUserName(principal.getName());
 
         ArrayList<Image> images = new ArrayList<>();
@@ -58,7 +57,8 @@ public class PostController {
                 images.add(imageService.uploadImage(file));
             }
 
-        return postService.createPost(postDto, images, user);
+        Post post = postService.createPost(postDto, images, user);
+        return new ResponseEntity<>(PostDto.createPostDto(post), HttpStatus.OK);
     }
 
     @Operation(summary = "Delete post by id")
@@ -89,34 +89,40 @@ public class PostController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Show Post",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Post.class)) }
+                            schema = @Schema(implementation = PostDto.class)) }
             )
     })
 
     @GetMapping("/post")
-    public Post showPost(@RequestParam(value = "id") String id){
-        return postService.findPostById(Long.parseLong(id));
+    public ResponseEntity<?> showPost(@RequestParam(value = "id") String id){
+        Post post = postService.findPostById(Long.parseLong(id));
+        return new ResponseEntity<>(PostDto.createPostDto(post), HttpStatus.OK);
     }
 
     @Operation(summary = "Get all posts from user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Show All user posts",
                     content = { @Content(mediaType = "application/json",
-                            array = @ArraySchema(schema = @Schema(implementation = Post.class))) }
+                            array = @ArraySchema(schema = @Schema(implementation = PostDto.class))) }
             )
     })
 
     @GetMapping("/user/posts")
-    public List<Post> showAllUsersPost(@RequestParam(value = "username") String username){
+    public ResponseEntity<?> showAllUsersPost(@RequestParam(value = "username") String username){
         User user = userService.findUserByUserName(username);
-        return postService.findAllByUser(user);
+        var posts = postService.findAllByUserOrderByCreatedDesc(user);
+
+        return new ResponseEntity<>(posts
+                .stream()
+                .map(PostDto::createPostDto)
+        , HttpStatus.OK);
     }
 
     @Operation(summary = "Change Post, change images, header, text or nothing")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Post was changed",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Post.class)) }
+                            schema = @Schema(implementation = PostDto.class)) }
             ),
             @ApiResponse(responseCode = "405", description = "Not allowed change this post",
                     content = { @Content(mediaType = "text/plain",
@@ -143,9 +149,9 @@ public class PostController {
             post.setHeader(postDto.getHeader());
             post.setText(postDto.getText());
             post.setImages(images);
-            postService.savePost(post);
+            post = postService.savePost(post);
 
-            return new ResponseEntity<>(post, HttpStatus.OK);
+            return new ResponseEntity<>(PostDto.createPostDto(post), HttpStatus.OK);
         }else
             return new ResponseEntity<>("You can change only your own post.", HttpStatus.METHOD_NOT_ALLOWED);
     }
