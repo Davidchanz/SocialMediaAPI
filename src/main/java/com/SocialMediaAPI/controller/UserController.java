@@ -1,7 +1,7 @@
 package com.SocialMediaAPI.controller;
 
 import com.SocialMediaAPI.dto.ApiErrorDto;
-import com.SocialMediaAPI.dto.ApiResponse;
+import com.SocialMediaAPI.dto.ApiResponseSingleOk;
 import com.SocialMediaAPI.dto.NotificationDto;
 import com.SocialMediaAPI.dto.UserDto;
 import com.SocialMediaAPI.model.*;
@@ -11,7 +11,6 @@ import com.SocialMediaAPI.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +42,7 @@ public class UserController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invite was sent to user",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class)) }),
+                            schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You can not sent invite to your self",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorDto.class)) }),
@@ -57,14 +56,14 @@ public class UserController {
 
     @PostMapping("/friend/invite")
     public ResponseEntity<?> sendFriendInvite(@RequestParam(value = "username") String username, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        User potentialFriend = userService.findUserByUserName(username);//TODO error check
+        User user = userService.findUserByUserName(principal.getName());
+        User potentialFriend = userService.findUserByUserName(username);
 
-        if(user.getFriends().contains(potentialFriend))//TODO TEST
-            return new ResponseEntity<>(new ApiErrorDto("You are already a friend with " + potentialFriend.getUsername()), HttpStatus.CONFLICT);
+        if(user.getFriends().contains(potentialFriend))
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite","You are already a friend with " + potentialFriend.getUsername()), HttpStatus.CONFLICT);
 
         if(Objects.equals(user.getId(), potentialFriend.getId()))
-            return new ResponseEntity<>(new ApiErrorDto("You can't be a friend with your self!"), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite","You can't be a friend with your self!"), HttpStatus.CONFLICT);
 
         if(!notificationService.isInviteExist(user, potentialFriend)
                 && !notificationService.isInviteExist(potentialFriend, user)) {
@@ -80,14 +79,14 @@ public class UserController {
             userService.subscribe(user, potentialFriend);
 
             return new ResponseEntity<>(
-                    new ApiResponse("User: "
+                    new ApiResponseSingleOk("Send Friend Invite", "User: "
                             + user.getUsername()
                             + " sent friend invite to user: "
                             + potentialFriend.getUsername()),
                     HttpStatus.OK);
         }else {
             return new ResponseEntity<>(
-                    new ApiErrorDto("User: "
+                    new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite","User: "
                             + user.getUsername()
                             + " already sent friend invite to user: "
                             + potentialFriend.getUsername()),
@@ -99,41 +98,60 @@ public class UserController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invite was rejected user who sent invite continues been subscriber",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class)) }),
+                            schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Invite which you request not sent to you",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorDto.class)) })
     })
 
     @PostMapping("/friend/invite/reject")
-    public ResponseEntity<?> rejectFriendInvite(@RequestParam(value = "id") String id, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        Notification notification = notificationService.findNotificationById(Long.parseLong(id));//TODO error check
+    public ResponseEntity<?> rejectFriendInvite(@RequestParam(value = "inviteId") String id, Principal principal){
+        User user = userService.findUserByUserName(principal.getName());
+
+        long inviteId;
+        try{
+            inviteId = Long.parseLong(id);
+            if(inviteId < 0)
+                throw new NumberFormatException();
+        }catch (NumberFormatException ex){
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/friend/invite/reject", "inviteId param is not valid number."), HttpStatus.BAD_REQUEST);
+        }
+        Notification notification = notificationService.findNotificationById(inviteId);
 
         if(Objects.equals(notification.getTo().getId(), user.getId())) {
             userService.removeNotification(user, notification);
             notificationService.deleteNotification(notification);
-            return new ResponseEntity<>(new ApiResponse("Invite rejected!"), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponseSingleOk("Reject Friend Invite", "Invite rejected!"), HttpStatus.OK);
         }
         else
-            return new ResponseEntity<>(new ApiErrorDto("Invite not found!"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.NOT_FOUND, "/friend/invite/reject","Invite with id: " + id + " not found!"), HttpStatus.NOT_FOUND);
     }
 
     @Operation(summary = "Accept Friend Invite and create Chat with him")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invite was accepted you became subscriber and friend with user who sent invite",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class)) }),
+                            schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Invite which you request not sent to you",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorDto.class)) })
     })
 
     @PostMapping("/friend/invite/accept")
-    public ResponseEntity<?> acceptFriendInvite(@RequestParam(value = "id") String id, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        Notification notification = notificationService.findNotificationById(Long.parseLong(id));//TODO error check
-        User from = (User)notification.getFrom();//TODO error check?
+    public ResponseEntity<?> acceptFriendInvite(@RequestParam(value = "inviteId") String id, Principal principal){
+        User user = userService.findUserByUserName(principal.getName());
+
+        long inviteId;
+        try{
+            inviteId = Long.parseLong(id);
+            if(inviteId < 0)
+                throw new NumberFormatException();
+        }catch (NumberFormatException ex){
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/friend/invite/accept", "inviteId param is not valid number."), HttpStatus.BAD_REQUEST);
+        }
+
+        Notification notification = notificationService.findNotificationById(inviteId);
+        User from = (User)notification.getFrom();
 
         if(Objects.equals(notification.getTo().getId(), user.getId())) {
             userService.subscribe(user, from);
@@ -151,17 +169,17 @@ public class UserController {
             userService.removeNotification(user, notification);
             notificationService.deleteNotification(notification);
 
-            return new ResponseEntity<>(new ApiResponse("Invite accepted!"), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponseSingleOk("Accepted Friend Invite", "Invite accepted!"), HttpStatus.OK);
         }
         else
-            return new ResponseEntity<>(new ApiErrorDto("Invite not found!"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.NOT_FOUND, "/friend/invite/accept","Invite with id: " + id + " not found!"), HttpStatus.NOT_FOUND);
     }
 
     @Operation(summary = "Subscribe on User")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "You successfully subscribed on user",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class)) }),
+                            schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You already subscribed on user",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorDto.class)) })
@@ -169,21 +187,21 @@ public class UserController {
 
     @PostMapping("/subscribe")
     public ResponseEntity<?> subscribe(@RequestParam(value = "username") String username, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        User publisher = userService.findUserByUserName(username);//TODO error check
+        User user = userService.findUserByUserName(principal.getName());
+        User publisher = userService.findUserByUserName(username);
 
         if(!user.getPublishers().contains(publisher)){
             userService.subscribe(user, publisher);
-            return new ResponseEntity<>(new ApiResponse("You subscribed on " + publisher.getUsername()), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponseSingleOk("Subscribe", "You subscribed on " + publisher.getUsername()), HttpStatus.OK);
         }else
-            return new ResponseEntity<>(new ApiErrorDto("You already subscribed on " + publisher.getUsername()), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/subscribe","You already subscribed on " + publisher.getUsername()), HttpStatus.CONFLICT);
     }
 
     @Operation(summary = "UnSubscribe from User")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "You successfully unSubscribed from user",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class)) }),
+                            schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You was not subscribed on user",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorDto.class)) })
@@ -191,21 +209,21 @@ public class UserController {
 
     @PostMapping("/unSubscribe")
     public ResponseEntity<?> unSubscribe(@RequestParam(value = "username") String username, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        User publisher = userService.findUserByUserName(username);//TODO error check
+        User user = userService.findUserByUserName(principal.getName());
+        User publisher = userService.findUserByUserName(username);
 
         if(user.getPublishers().contains(publisher)){
             userService.unSubscribe(user, publisher);
-            return new ResponseEntity<>(new ApiResponse("You unsubscribed from " + publisher.getUsername()), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponseSingleOk("UnSubscribe", "You unsubscribed from " + publisher.getUsername()), HttpStatus.OK);
         }else
-            return new ResponseEntity<>(new ApiErrorDto("You are not subscribed on " + publisher.getUsername() + " yet"), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/unSubscribe","You are not subscribed on " + publisher.getUsername() + " yet"), HttpStatus.CONFLICT);
     }
 
     @Operation(summary = "Remove User from Friend list and remove Chat with him")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "You removed user from your friend list and publisher list",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class)) }),
+                            schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You are not friend with user",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorDto.class)) })
@@ -213,15 +231,15 @@ public class UserController {
 
     @PostMapping("/friend/remove")
     public ResponseEntity<?> removeFriend(@RequestParam(value = "username") String username, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        User friend = userService.findUserByUserName(username);//TODO error check
+        User user = userService.findUserByUserName(principal.getName());
+        User friend = userService.findUserByUserName(username);
 
         if(user.getFriends().contains(friend)){
             userService.deleteFriend(user, friend);
             chatService.deleteChat(user, friend);
-            return new ResponseEntity<>(new ApiResponse("You removed " + friend.getUsername() + " from your friend list and publisher list"), HttpStatus.OK);
+            return new ResponseEntity<>(new ApiResponseSingleOk("Remove Friend", "You removed " + friend.getUsername() + " from your friend list and publisher list"), HttpStatus.OK);
         }else
-            return new ResponseEntity<>(new ApiErrorDto("You are not friend with " + friend.getUsername()), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/remove","You are not friend with " + friend.getUsername()), HttpStatus.CONFLICT);
     }
 
     @Operation(summary = "Get all user's notifications")
@@ -233,7 +251,7 @@ public class UserController {
 
     @GetMapping("/notifications")
     public ResponseEntity<?> getNotifications(Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
+        User user = userService.findUserByUserName(principal.getName());
         List<NotificationDto> resultNotificationList = new ArrayList<>();
         var notificationList = notificationService.findAllNotificationByUser(user);
         for(var notification: notificationList){

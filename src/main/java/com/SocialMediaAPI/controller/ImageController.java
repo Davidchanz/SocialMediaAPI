@@ -1,8 +1,8 @@
 package com.SocialMediaAPI.controller;
 
 import com.SocialMediaAPI.dto.ApiErrorDto;
-import com.SocialMediaAPI.dto.TokenDto;
-import com.SocialMediaAPI.model.Image;
+import com.SocialMediaAPI.dto.ApiResponseArrayOk;
+import com.SocialMediaAPI.dto.ImageDto;
 import com.SocialMediaAPI.service.ImageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,13 +32,19 @@ public class ImageController {
                             examples = @ExampleObject("File: 'image_name.png' uploaded!")) })})
 
     @PostMapping("/uploadImage")
-    public ResponseEntity<?> uploadImage(@RequestParam("image[]") MultipartFile[] files) throws IOException {
-        String uploadImages = "";
-        for(var file: files) {
-            uploadImages += "File: " + imageService.uploadImage(file).getName() + " uploaded!";
+    public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile[] files) {
+        ImageDto[] uploadImages = new ImageDto[files.length];
+        for(int i = 0; i < files.length; i++) {
+            try {
+                uploadImages[i] = ImageDto.createImageDto(imageService.uploadImage(files[i]));
+            }catch (NullPointerException ex){
+                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/uploadImage", "Can not read File number: '" + ++i + "' file is NULL!"), HttpStatus.BAD_REQUEST);
+            }
+            catch (IOException ex){
+                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/uploadImage", "Can not read File number: '" + files[i].getOriginalFilename() + "' file is damaged!"), HttpStatus.BAD_REQUEST);
+            }
         }
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(uploadImages);
+        return new ResponseEntity<>(new ApiResponseArrayOk<>("Images Uploaded!", uploadImages), HttpStatus.OK);
     }
 
     @Operation(summary = "Download image by id")
@@ -51,12 +57,19 @@ public class ImageController {
     )
 
     @GetMapping("/download")
-    public ResponseEntity<?> downloadImage(@RequestParam("id") String id){
-        byte[] imageData = imageService.downloadImage(Long.parseLong(id));
+    public ResponseEntity<?> downloadImage(@RequestParam("imageId") String id){
+        long imageId;
+        try{
+            imageId = Long.parseLong(id);
+            if(imageId < 0)
+                throw new NumberFormatException();
+        }catch (NumberFormatException ex){
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/download", "imageId param is not valid number."), HttpStatus.BAD_REQUEST);
+        }
+        byte[] imageData = imageService.downloadImage(imageId);
         return ResponseEntity.status(HttpStatus.OK)
                 .contentType(MediaType.valueOf("image/png"))
                 .body(imageData);
-
     }
 
 }

@@ -20,7 +20,7 @@ public class ImageDto {
     @NotNull
     private String type;
 
-    public static ImageDto getDecompressedImage(Image image){
+    public static ImageDto createImageDto(Image image){
         return ImageDto.builder()
                 .id(image.getId())
                 .name(image.getName())

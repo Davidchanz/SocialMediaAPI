@@ -46,7 +46,7 @@ public class PostDto {
                 .user((UserDto) UserDto.createUserDto(post.getUser()))
                 .images(post.getImages()
                         .stream()
-                        .map(ImageDto::getDecompressedImage)
+                        .map(ImageDto::createImageDto)
                         .collect(Collectors.toList())
                 )
                 .build();

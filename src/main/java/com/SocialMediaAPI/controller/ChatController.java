@@ -11,9 +11,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,9 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -53,7 +49,7 @@ public class ChatController {
 
     @GetMapping("/chats")
     public ResponseEntity<?> getAllChats(Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
+        User user = userService.findUserByUserName(principal.getName());
 
         List<ChatDto> resultChatList = new ArrayList<>();
         for(var chat: user.getChats()){
@@ -81,9 +77,19 @@ public class ChatController {
     })
 
     @GetMapping("/chat/history")
-    public ResponseEntity<?> getChatMessageHistory(@RequestParam(value = "id") String id, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        Chat chat = chatService.findChatById(Long.parseLong(id));
+    public ResponseEntity<?> getChatMessageHistory(@RequestParam(value = "chatId") String id, Principal principal){
+        User user = userService.findUserByUserName(principal.getName());
+        long chatId;
+        try{
+            chatId = Long.parseLong(id);
+            if(chatId < 0)
+                throw new NumberFormatException();
+        }catch (NumberFormatException ex){
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/history","ChatId param is not valid number."), HttpStatus.BAD_REQUEST);
+        }
+        Chat chat = chatService.findChatById(chatId);
+        if(!user.getChats().contains(chat))
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/history","You are not a member of chat: " + chat.getName()), HttpStatus.BAD_REQUEST);
 
         List<ChatMessagesDto> resultChatList = new ArrayList<>();
         for(var message:  chatMessageService.findByChatOrderByCreatedAsc(chat)) {
@@ -97,13 +103,23 @@ public class ChatController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Message was send, other users in chat received notification",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiResponse.class)) })
+                            schema = @Schema(implementation = ApiResponseSingleOk.class)) })
     })
 
     @PostMapping("/chat/send")
-    public ResponseEntity<?> sendMessage(@RequestParam(value = "message") String message, @RequestParam(value = "id") String id, Principal principal){
-        User user = userService.findUserByUserName(principal.getName());//TODO error check
-        Chat chat = chatService.findChatById(Long.parseLong(id));
+    public ResponseEntity<?> sendMessage(@RequestParam(value = "message") String message, @RequestParam(value = "chatId") String id, Principal principal){
+        User user = userService.findUserByUserName(principal.getName());
+        long chatId;
+        try{
+            chatId = Long.parseLong(id);
+            if(chatId < 0)
+                throw new NumberFormatException();
+        }catch (NumberFormatException ex){
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/send", "ChatId param is not valid number."), HttpStatus.BAD_REQUEST);
+        }
+        Chat chat = chatService.findChatById(chatId);
+        if(!user.getChats().contains(chat))
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/send","You are not a member of chat: " + chat.getName()), HttpStatus.BAD_REQUEST);
 
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setMessage(message);
@@ -126,7 +142,7 @@ public class ChatController {
             }
         }
 
-        return new ResponseEntity<>(new ApiResponse("You sent message in chat " + chat.getName()), HttpStatus.OK);
+        return new ResponseEntity<>(new ApiResponseSingleOk("Send Message", "You sent message in chat " + chat.getName()), HttpStatus.OK);
     }
 
 }
