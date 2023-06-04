@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -31,7 +32,7 @@ public class PostDto {
     private Instant created;
 
     @NotNull
-    private List<Image> images = new ArrayList<>();
+    private List<ImageDto> images = new ArrayList<>();
 
     @NotNull
     private UserDto user;
@@ -43,7 +44,11 @@ public class PostDto {
                 .text(post.getText())
                 .created(post.getCreated())
                 .user((UserDto) UserDto.createUserDto(post.getUser()))
-                .images(post.getImages())
+                .images(post.getImages()
+                        .stream()
+                        .map(ImageDto::getDecompressedImage)
+                        .collect(Collectors.toList())
+                )
                 .build();
     }
 }
