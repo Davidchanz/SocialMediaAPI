@@ -1,7 +1,6 @@
 package com.SocialMediaAPI.dto;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,16 +8,13 @@ import java.time.Instant;
 
 @Getter
 @Setter
-public class ApiResponse {
-
-    public ApiResponse(String response) {
-        this.response = response;
-    }
+public abstract class ApiResponse {
+    @NotNull
+    protected Instant created = Instant.now();
 
     @NotNull
-    @Size(max = 1000)
-    private String response;
+    protected int status;
 
     @NotNull
-    private Instant created = Instant.now();
+    protected String title;
 }

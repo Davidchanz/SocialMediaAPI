@@ -6,15 +6,34 @@ import com.SocialMediaAPI.repository.ActivityFeedRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.*;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class ActivityFeedRepositoryImpl implements ActivityFeedRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Override
+    public int getMaxPageNumber(User user, int maxPageSize){
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Post> query = cb.createQuery(Post.class);
+        Root<Post> post = query.from(Post.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+        Path<User> author = post.get("user");
+        for(var publisher: user.getPublishers()) {
+            predicates.add(cb.equal(author, publisher));
+        }
+        query.select(post).where(cb.or(predicates.toArray(new Predicate[0])));
+
+        return (int)Math.ceil(entityManager.createQuery(query).getResultList().size() / (double)maxPageSize);
+    }
 
     @Override
     public List<Post> findAllActivityFeedPostsOrderByCreatedDesc(User user) {
@@ -27,10 +46,9 @@ public class ActivityFeedRepositoryImpl implements ActivityFeedRepository {
         for(var publisher: user.getPublishers()) {
             predicates.add(cb.equal(author, publisher));
         }
-        query.
-                select(post).
-                where(cb.or(predicates.toArray(new Predicate[0]))).
-                orderBy(cb.desc(post.get("created")));
+        query.select(post)
+                .where(cb.or(predicates.toArray(new Predicate[0])))
+                .orderBy(cb.desc(post.get("created")));
 
         return entityManager.createQuery(query).getResultList();
     }
@@ -46,14 +64,14 @@ public class ActivityFeedRepositoryImpl implements ActivityFeedRepository {
         for(var publisher: user.getPublishers()) {
             predicates.add(cb.equal(author, publisher));
         }
-        query.
-                select(post).
-                where(cb.or(predicates.toArray(new Predicate[0]))).
-                orderBy(cb.desc(post.get("created")));
+        query
+                .select(post)
+                .where(cb.or(predicates.toArray(new Predicate[0])))
+                .orderBy(cb.desc(post.get("created")));
 
-        return entityManager.createQuery(query).
-                setMaxResults(pageable.getPageSize()).
-                setFirstResult(pageable.getPageNumber() * pageable.getPageSize()).
-                getResultList();
+        return entityManager.createQuery(query)
+                .setMaxResults(pageable.getPageSize())
+                .setFirstResult(pageable.getPageNumber() * pageable.getPageSize())
+                .getResultList();
     }
 }

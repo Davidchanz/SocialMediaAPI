@@ -30,10 +30,8 @@ public class AuthController {
                             schema = @Schema(implementation = TokenDto.class)) })})
     @PostMapping("/token")
     public TokenDto token(Authentication authentication){
-        //System.out.println("Token for user " + authentication.getName());
         TokenDto token = new TokenDto();
         token.setToken(tokenService.generateToken(authentication));
-        //System.out.println("Token Granted " + token);
         return token;
     }
 }

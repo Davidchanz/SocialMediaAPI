@@ -43,12 +43,4 @@ public class PostService {
     public Post savePost(Post post) {
         return postRepository.save(post);
     }
-
-    public List<Post> findAllActivityFeedPostsOrderByCreatedDesc(User user) {
-        return postRepository.findAllActivityFeedPostsOrderByCreatedDesc(user);
-    }
-
-    public List<Post> findAllActivityFeedPostsOrderByCreatedDescPageable(User user, Pageable page) {
-        return postRepository.findAllActivityFeedPostsOrderByCreatedDescPageable(user, page);
-    }
 }
