@@ -193,6 +193,8 @@ public class UserController {
         User user = userService.findUserByUserName(principal.getName());
         User publisher = userService.findUserByUserName(username);
 
+        if(user == publisher)
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/subscribe", MethodNotAllowedException.class.getName(), "You can not subscribe on your self"), HttpStatus.CONFLICT);
         if(!user.getPublishers().contains(publisher)){
             userService.subscribe(user, publisher);
             return new ResponseEntity<>(new ApiResponseSingleOk("Subscribe", "You subscribed on " + publisher.getUsername()), HttpStatus.OK);
@@ -215,6 +217,8 @@ public class UserController {
         User user = userService.findUserByUserName(principal.getName());
         User publisher = userService.findUserByUserName(username);
 
+        if(user == publisher)
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/subscribe", MethodNotAllowedException.class.getName(), "You can not unSubscribe from your self"), HttpStatus.CONFLICT);
         if(user.getPublishers().contains(publisher)){
             userService.unSubscribe(user, publisher);
             return new ResponseEntity<>(new ApiResponseSingleOk("UnSubscribe", "You unsubscribed from " + publisher.getUsername()), HttpStatus.OK);

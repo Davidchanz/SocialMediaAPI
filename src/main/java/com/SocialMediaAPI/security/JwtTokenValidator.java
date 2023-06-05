@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class JwtTokenValidator {
 
     @Autowired
-    private JwtDecoder decoder;
+    public JwtDecoder decoder;
 
     /**
      * Validates if a token satisfies the following properties

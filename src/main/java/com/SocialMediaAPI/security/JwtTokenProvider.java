@@ -23,10 +23,10 @@ public class JwtTokenProvider {
     private final long jwtExpirationInMs;
 
     @Autowired
-    private JwtEncoder encoder;
+    public JwtEncoder encoder;
 
     @Autowired
-    private JwtDecoder decoder;
+    public JwtDecoder decoder;
 
     public JwtTokenProvider(@Value("${app.jwt.expiration}") long jwtExpirationInMs) {
         this.jwtExpirationInMs = jwtExpirationInMs;

@@ -1,18 +1,13 @@
 package com.SocialMediaAPI.controller;
 
-import com.SocialMediaAPI.dto.ApiErrorDto;
-import com.SocialMediaAPI.dto.LoginDto;
-import com.SocialMediaAPI.dto.TokenDto;
-import com.SocialMediaAPI.dto.UserAuthDto;
+import com.SocialMediaAPI.dto.*;
 import com.SocialMediaAPI.exception.UserLoginException;
 import com.SocialMediaAPI.model.CustomUserDetails;
 import com.SocialMediaAPI.model.User;
 import com.SocialMediaAPI.security.JwtTokenProvider;
 import com.SocialMediaAPI.service.AuthService;
-import com.SocialMediaAPI.service.TokenService;
 import com.SocialMediaAPI.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -52,13 +48,16 @@ public class AuthController {
                             examples = @ExampleObject("User with username: 'username' is already exist!")) }) })
 
     @PostMapping("/registration")
-    public String register(@Valid @RequestBody UserAuthDto userAuthDto){
+    public ResponseEntity<?> register(@Valid @RequestBody(required = false) UserAuthDto userAuthDto){
+        if(userAuthDto == null)
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/api/auth/registration", NullPointerException.class.getName(), "Required body: 'UserAuthDto' is missing!"), HttpStatus.BAD_REQUEST);
+
         User user = new User();
         user.setUsername(userAuthDto.getUsername());
         user.setPassword(userAuthDto.getPassword());
         user.setEmail(userAuthDto.getEmail());
         userService.registerNewUserAccount(user);
-        return "User '" + user.getUsername() + "' successfully created!";
+        return new ResponseEntity<>(new ApiResponseSingleOk("Registration", "User '" + user.getUsername() + "' successfully created!"), HttpStatus.OK);
     }
 
     @Operation(summary = "Get user token")
