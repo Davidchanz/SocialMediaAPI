@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -54,7 +55,12 @@ public class UserController {
             schema = @Schema(implementation = ApiErrorDto.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You are already a friend with user",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiErrorDto.class)) })
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User by username not found.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/friend/invite")
@@ -102,9 +108,14 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invite was rejected user who sent invite continues been subscriber",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Invite which you request not sent to you",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "inviteId param is not valid number.",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiErrorDto.class)) })
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Invite by inviteId not found.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/friend/invite/reject")
@@ -135,9 +146,14 @@ public class UserController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Invite was accepted you became subscriber and friend with user who sent invite",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Invite which you request not sent to you",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "inviteId param is not valid number.",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiErrorDto.class)) })
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Invite by inviteId not found.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/friend/invite/accept")
@@ -185,7 +201,12 @@ public class UserController {
                             schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You already subscribed on user",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiErrorDto.class)) })
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You can not subscribe on your self",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/subscribe")
@@ -209,7 +230,12 @@ public class UserController {
                             schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You was not subscribed on user",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiErrorDto.class)) })
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You can not unSubscribe from your self",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/unSubscribe")
@@ -233,7 +259,12 @@ public class UserController {
                             schema = @Schema(implementation = ApiResponseSingleOk.class)) }),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "You are not friend with user",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ApiErrorDto.class)) })
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "User by username not found.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/friend/remove")
@@ -253,7 +284,9 @@ public class UserController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "You removed user from your friend list and publisher list",
                     content = { @Content(mediaType = "application/json",
-                            array = @ArraySchema( schema = @Schema( implementation = NotificationDto.class))) })
+                            array = @ArraySchema( schema = @Schema( implementation = NotificationDto.class))) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @GetMapping("/notifications")

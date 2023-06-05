@@ -40,12 +40,15 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "Registered new user",
                     content = { @Content(mediaType = "text/plain",
                             examples = @ExampleObject("User 'username' successfully created!")) }),
-            @ApiResponse(responseCode = "400", description = "Invalid user input",
+            @ApiResponse(responseCode = "400", description = "Invalid user input, param UserAuthDto is not valid",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = ApiErrorDto.class)) }),
             @ApiResponse(responseCode = "409", description = "User already registered",
                     content = { @Content(mediaType = "text/plain",
-                            examples = @ExampleObject("User with username: 'username' is already exist!")) }) })
+                            examples = @ExampleObject("User with username: 'username' is already exist!")) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
+    })
 
     @PostMapping("/registration")
     public ResponseEntity<?> register(@Valid @RequestBody(required = false) UserAuthDto userAuthDto){
@@ -60,11 +63,17 @@ public class AuthController {
         return new ResponseEntity<>(new ApiResponseSingleOk("Registration", "User '" + user.getUsername() + "' successfully created!"), HttpStatus.OK);
     }
 
-    @Operation(summary = "Get user token")
+    @Operation(summary = "Login and Get user token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get user token",
                     content = { @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TokenDto.class)) })})
+                            schema = @Schema(implementation = TokenDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Bad credentials username or password",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
+    })
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginRequest){
