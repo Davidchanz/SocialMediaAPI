@@ -29,7 +29,13 @@ public class ImageController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Images uploaded",
                     content = { @Content(mediaType = "text/plain",
-                            examples = @ExampleObject("File: 'image_name.png' uploaded!")) })})
+                            examples = @ExampleObject("File: 'image_name.png' uploaded!")) }),
+            @ApiResponse(responseCode = "400", description = "Bad Request, Can not read image File.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
+    })
 
     @PostMapping("/uploadImage")
     public ResponseEntity<?> uploadImage(@RequestParam("image") MultipartFile[] files) {
@@ -52,9 +58,13 @@ public class ImageController {
             @ApiResponse(responseCode = "200", description = "Images uploaded",
                     content = { @Content(mediaType = "image/png",
                             schema = @Schema(type = "string", format = "binary")) }
-            )
-    }
-    )
+            ),
+            @ApiResponse(responseCode = "400", description = "Bad Request, imageId param is not valid number.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
+    })
 
     @GetMapping("/download")
     public ResponseEntity<?> downloadImage(@RequestParam("imageId") String id){

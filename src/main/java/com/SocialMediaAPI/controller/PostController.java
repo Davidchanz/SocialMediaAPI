@@ -45,7 +45,17 @@ public class PostController {
             @ApiResponse(responseCode = "200", description = "Get created Post",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = PostDto.class)) }
-            )
+            ),
+            @ApiResponse(responseCode = "400", description = "Required parameter: 'post' is missing!",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "400", description = "Can not read image File.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/createPost")
@@ -82,7 +92,13 @@ public class PostController {
             @ApiResponse(responseCode = "405", description = "Not allowed delete this Post",
                     content = { @Content(mediaType = "text/plain",
                             examples = @ExampleObject("You can delete only your own posts!")) }
-            )
+            ),
+            @ApiResponse(responseCode = "400", description = "Param postId is not valid number.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/deletePost")
@@ -95,7 +111,7 @@ public class PostController {
             if(postId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/deletePost", NumberFormatException.class.getName(), "postId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/deletePost", NumberFormatException.class.getName(), "Param postId is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Post post = postService.findPostById(postId);
         if(Objects.equals(post.getUser().getId(), user.getId())){
@@ -110,7 +126,13 @@ public class PostController {
             @ApiResponse(responseCode = "200", description = "Show Post",
                     content = { @Content(mediaType = "application/json",
                             schema = @Schema(implementation = PostDto.class)) }
-            )
+            ),
+            @ApiResponse(responseCode = "400", description = "Param postId is not valid number.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @GetMapping("/post")
@@ -121,7 +143,7 @@ public class PostController {
             if(postId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/post", NumberFormatException.class.getName(), "postId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/post", NumberFormatException.class.getName(), "Param postId is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Post post = postService.findPostById(postId);
         return new ResponseEntity<>(PostDto.createPostDto(post), HttpStatus.OK);
@@ -132,6 +154,10 @@ public class PostController {
             @ApiResponse(responseCode = "200", description = "Show All user posts",
                     content = { @Content(mediaType = "application/json",
                             array = @ArraySchema(schema = @Schema(implementation = PostDto.class))) }
+            ),
+            @ApiResponse(responseCode = "404", description = "User by username not found.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
             )
     })
 
@@ -155,7 +181,25 @@ public class PostController {
             @ApiResponse(responseCode = "405", description = "Not allowed change this post",
                     content = { @Content(mediaType = "text/plain",
                             examples = @ExampleObject("You can change only your own posts!")) }
-            )
+            ),
+            @ApiResponse(responseCode = "400", description = "Required parameter: 'post' is missing!",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "400", description = "Required parameter: 'postId' is missing!",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "400", description = "Param postId is not valid number.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "400", description = "Can not read image File.",
+                    content = { @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ApiErrorDto.class)) }
+            ),
+            @ApiResponse(responseCode = "401", description = "Un-Authorized user", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))}),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error", content = {@Content(schema = @Schema(implementation = ApiErrorDto.class))})
     })
 
     @PostMapping("/changePost")
@@ -173,7 +217,7 @@ public class PostController {
             if(postId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/changePost", NumberFormatException.class.getName(), "postId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/changePost", NumberFormatException.class.getName(), "Param postId is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Post post = postService.findPostById(postId);
         if(Objects.equals(post.getUser().getId(), user.getId())){
