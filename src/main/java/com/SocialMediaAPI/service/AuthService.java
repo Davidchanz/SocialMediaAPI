@@ -35,20 +35,4 @@ public class AuthService {
         return tokenProvider.generateToken(customUserDetails);
     }
 
-   /* public Optional<RefreshToken> createAndPersistRefreshTokenForDevice(Authentication authentication, LoginDto loginRequest) {
-        User currentUser = (User) authentication.getPrincipal();
-        //String deviceId = loginRequest.getDeviceInfo().getDeviceId();
-        *//*userDeviceService.findDeviceByUserId(currentUser.getId(), deviceId)
-                .map(UserDevice::getRefreshToken)
-                .map(RefreshToken::getId)
-                .ifPresent(refreshTokenService::deleteById);
-*//*
-        //UserDevice userDevice = userDeviceService.createUserDevice(loginRequest.getDeviceInfo());
-        //RefreshToken refreshToken = refreshTokenService.createRefreshToken();
-        //userDevice.setUser(currentUser);
-        //userDevice.setRefreshToken(refreshToken);
-        refreshToken.setUserDevice(userDevice);
-        refreshToken = refreshTokenService.save(refreshToken);
-        return Optional.ofNullable(refreshToken);
-    }*/
 }

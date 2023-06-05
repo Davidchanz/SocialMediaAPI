@@ -10,12 +10,9 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Component;
-import jakarta.xml.bind.DatatypeConverter;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +20,6 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
 
     private static final String AUTHORITIES_CLAIM = "authorities";
-    private final String jwtSecret;
     private final long jwtExpirationInMs;
 
     @Autowired
@@ -32,8 +28,7 @@ public class JwtTokenProvider {
     @Autowired
     private JwtDecoder decoder;
 
-    public JwtTokenProvider(@Value("${app.jwt.secret}") String jwtSecret, @Value("${app.jwt.expiration}") long jwtExpirationInMs) {
-        this.jwtSecret = jwtSecret;
+    public JwtTokenProvider(@Value("${app.jwt.expiration}") long jwtExpirationInMs) {
         this.jwtExpirationInMs = jwtExpirationInMs;
     }
 
@@ -54,36 +49,6 @@ public class JwtTokenProvider {
                 .claim(AUTHORITIES_CLAIM, authorities)
                 .build();
         return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-       /* return Jwts.builder()
-                .setSubject(Long.toString(customUserDetails.getId()))
-                .setIssuedAt(Date.from(Instant.now()))
-                .setExpiration(Date.from(expiryDate))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
-                .claim(AUTHORITIES_CLAIM, authorities)
-                .compact();*/
-    }
-
-    /**
-     * Generates a token from a principal object. Embed the refresh token in the jwt
-     * so that a new jwt can be created
-     */
-    public String generateTokenFromUserId(Long userId) {
-        Instant expiryDate = Instant.now().plusMillis(jwtExpirationInMs);
-        Instant now = Instant.now();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("self")
-                .issuedAt(now)
-                .expiresAt(expiryDate)
-                .subject(Long.toString(userId))
-                //.claim(AUTHORITIES_CLAIM, authorities)
-                .build();
-        return this.encoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
-        /*return Jwts.builder()
-                .setSubject(Long.toString(userId))
-                .setIssuedAt(Date.from(Instant.now()))
-                .setExpiration(Date.from(expiryDate))
-                .signWith(SignatureAlgorithm.HS512, jwtSecret)
-                .compact();*/
     }
 
     /**
@@ -91,33 +56,6 @@ public class JwtTokenProvider {
      */
     public Long getUserIdFromJWT(String token) {
         return Long.parseLong(this.decoder.decode(token).getSubject());
-        /*Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .parseClaimsJws(token)
-                .getBody();
-*/
-        //return Long.parseLong(claims.getSubject());
-    }
-
-    /**
-     * Returns the token expiration date encapsulated within the token
-     */
-    public Date getTokenExpiryFromJWT(String token) {
-        return Date.from(this.decoder.decode(token).getExpiresAt());
-        /*Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .parseClaimsJws(token)
-                .getBody();
-
-        return claims.getExpiration();*/
-    }
-
-    /**
-     * Return the jwt expiration for the client so that they can execute
-     * the refresh token logic appropriately
-     */
-    public long getExpiryDuration() {
-        return jwtExpirationInMs;
     }
 
     /**
@@ -125,10 +63,6 @@ public class JwtTokenProvider {
      */
     public List<GrantedAuthority> getAuthoritiesFromJWT(String token) {
         var claims = this.decoder.decode(token).getClaims();
-        /*Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .parseClaimsJws(token)
-                .getBody();*/
         return Arrays.stream(claims.get(AUTHORITIES_CLAIM).toString().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());

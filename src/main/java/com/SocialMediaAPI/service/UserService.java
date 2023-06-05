@@ -26,10 +26,6 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public User saveUser(User user){
-        return userRepository.save(user);
-    }
-
     private boolean userExists(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
@@ -47,7 +43,7 @@ public class UserService {
         userRepository.save(notification.getTo());
     }
 
-    public User registerNewUserAccount(User user) throws UserAlreadyExistException {
+    public void registerNewUserAccount(User user) throws UserAlreadyExistException {
         if (userExists(user.getUsername())) {
             throw new UserAlreadyExistException("User with username: '"
                     + user.getUsername() + "' is already exist!");
@@ -60,9 +56,7 @@ public class UserService {
 
         user.setPassword(encryptPassword(user.getPassword()));
 
-        //user.setRoles(List.of("ROLE_USER"));
-
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
     private boolean emailExists(String email) {

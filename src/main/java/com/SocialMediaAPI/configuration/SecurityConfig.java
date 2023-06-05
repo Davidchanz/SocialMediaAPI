@@ -1,10 +1,8 @@
 package com.SocialMediaAPI.configuration;
 
-import com.SocialMediaAPI.model.CustomUserDetails;
 import com.SocialMediaAPI.security.JwtAuthenticationEntryPoint;
 import com.SocialMediaAPI.security.JwtAuthenticationFilter;
 import com.SocialMediaAPI.service.CustomUserDetailsService;
-import com.SocialMediaAPI.service.UserService;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -22,7 +20,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -67,16 +64,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(conf -> conf.authenticationEntryPoint(jwtEntryPoint))
                 .authorizeHttpRequests(req -> req
-                        .requestMatchers("/register")
-                        .permitAll()
-                        .requestMatchers("/login")
+                        .requestMatchers("/api/auth/**")
                         .permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                         .permitAll()
                         .anyRequest()
                         .authenticated()
                 )
-                //.oauth2ResourceServer(auth2 -> auth2.jwt(Customizer.withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults());
 

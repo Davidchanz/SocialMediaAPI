@@ -35,10 +35,13 @@ public class User extends AbstractSender implements Sender {
 
     @NotNull
     @ManyToMany
+    @JoinTable(name = "subs_publishers",
+            joinColumns = { @JoinColumn(name = "sub_id") },
+            inverseJoinColumns = { @JoinColumn(name = "pub_id") })
     private Set<User> subscribers = new HashSet<>();
 
     @NotNull
-    @ManyToMany
+    @ManyToMany(mappedBy = "subscribers")
     private Set<User> publishers = new HashSet<>();
 
 
@@ -58,14 +61,6 @@ public class User extends AbstractSender implements Sender {
             )
     )
     private Set<Chat> chats = new HashSet<>();
-
-    public User(){}
-    public User(User user) {
-        setId(user.getId());
-        username = user.getUsername();
-        password = user.getPassword();
-        email = user.getEmail();
-    }
 
     @Override
     public Sender createDto() {

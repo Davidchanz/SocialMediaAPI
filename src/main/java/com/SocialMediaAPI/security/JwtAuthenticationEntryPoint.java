@@ -2,7 +2,6 @@ package com.SocialMediaAPI.security;
 
 import com.SocialMediaAPI.dto.ApiErrorDto;
 import com.SocialMediaAPI.dto.ErrorDto;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +37,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             resolver.resolveException(request, httpServletResponse, null, (Exception) throwable);
         }
         if (!httpServletResponse.isCommitted()) {
-            //httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
             if(throwable == null) {//User has no Auth in request header
                 httpServletResponse.setContentType("application/json");
                 httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

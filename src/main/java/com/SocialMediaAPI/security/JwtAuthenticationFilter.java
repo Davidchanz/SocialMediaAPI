@@ -1,13 +1,9 @@
 package com.SocialMediaAPI.security;
 
-import com.SocialMediaAPI.model.CustomUserDetails;
 import com.SocialMediaAPI.service.CustomUserDetailsService;
-import com.SocialMediaAPI.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
