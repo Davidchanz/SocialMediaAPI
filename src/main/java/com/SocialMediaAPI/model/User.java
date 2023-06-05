@@ -16,7 +16,7 @@ import java.util.*;
 @Table(name = "USERS")
 @Setter
 @Getter
-public class User extends AbstractSender implements UserDetails, Sender {
+public class User extends AbstractSender implements Sender {
     @Column(unique = true, nullable = false, length = 25)
     @NotNull
     private String username;
@@ -59,44 +59,12 @@ public class User extends AbstractSender implements UserDetails, Sender {
     )
     private Set<Chat> chats = new HashSet<>();
 
-    @JsonIgnore
-    @Override
-    public Collection<GrantedAuthority> getAuthorities() {
-        return new ArrayList<GrantedAuthority>();
-    }
-
-    @JsonIgnore
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @JsonIgnore
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @JsonIgnore
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @JsonIgnore
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.username;
+    public User(){}
+    public User(User user) {
+        setId(user.getId());
+        username = user.getUsername();
+        password = user.getPassword();
+        email = user.getEmail();
     }
 
     @Override

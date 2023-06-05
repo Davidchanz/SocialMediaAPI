@@ -1,6 +1,7 @@
 package com.SocialMediaAPI.controller;
 
 import com.SocialMediaAPI.dto.*;
+import com.SocialMediaAPI.exception.WrongOwnerException;
 import com.SocialMediaAPI.model.*;
 import com.SocialMediaAPI.service.ChatMessageService;
 import com.SocialMediaAPI.service.ChatService;
@@ -85,11 +86,11 @@ public class ChatController {
             if(chatId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/history","ChatId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/history", NumberFormatException.class.getName(), "ChatId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Chat chat = chatService.findChatById(chatId);
         if(!user.getChats().contains(chat))
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/history","You are not a member of chat: " + chat.getName()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/history", WrongOwnerException.class.getName(), "You are not a member of chat: " + chat.getName()), HttpStatus.BAD_REQUEST);
 
         List<ChatMessagesDto> resultChatList = new ArrayList<>();
         for(var message:  chatMessageService.findByChatOrderByCreatedAsc(chat)) {
@@ -115,11 +116,11 @@ public class ChatController {
             if(chatId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/send", "ChatId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/send", NumberFormatException.class.getName(), "ChatId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Chat chat = chatService.findChatById(chatId);
         if(!user.getChats().contains(chat))
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/send","You are not a member of chat: " + chat.getName()), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/chat/send", WrongOwnerException.class.getName(), "You are not a member of chat: " + chat.getName()), HttpStatus.BAD_REQUEST);
 
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setMessage(message);

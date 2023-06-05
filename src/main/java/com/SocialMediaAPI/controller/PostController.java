@@ -2,6 +2,7 @@ package com.SocialMediaAPI.controller;
 
 import com.SocialMediaAPI.dto.ApiErrorDto;
 import com.SocialMediaAPI.dto.PostDto;
+import com.SocialMediaAPI.exception.WrongOwnerException;
 import com.SocialMediaAPI.model.Image;
 import com.SocialMediaAPI.model.Post;
 import com.SocialMediaAPI.model.User;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -47,7 +49,11 @@ public class PostController {
     })
 
     @PostMapping("/createPost")
-    public ResponseEntity<?> createPost(@RequestPart(value = "image", required = false) MultipartFile[] files, @RequestPart(value = "post") PostDto postDto, Principal principal) {
+    public ResponseEntity<?> createPost(@RequestPart(value = "image", required = false) MultipartFile[] files, @RequestPart(value = "post", required = false) PostDto postDto, Principal principal) {
+
+        if(postDto == null)
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/createPost", MultipartException.class.getName(), "Required parameter: 'post' is missing!"), HttpStatus.BAD_REQUEST);
+
         User user = userService.findUserByUserName(principal.getName());
 
         ArrayList<Image> images = new ArrayList<>();
@@ -56,10 +62,10 @@ public class PostController {
                 try {
                     images.add(imageService.uploadImage(files[i]));
                 }catch (NullPointerException ex){
-                    return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/createPost", "Can not read File number: '" + ++i + "' file is NULL!"), HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/createPost", NullPointerException.class.getName(), "Can not read File number: '" + ++i + "' file is NULL!"), HttpStatus.BAD_REQUEST);
                 }
                 catch (IOException ex){
-                    return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/createPost", "Can not read File number: '" + files[i].getOriginalFilename() + "' file is damaged!"), HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/createPost", IOException.class.getName(), "Can not read File number: '" + files[i].getOriginalFilename() + "' file is damaged!"), HttpStatus.BAD_REQUEST);
                 }
             }
 
@@ -89,7 +95,7 @@ public class PostController {
             if(postId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/deletePost", "postId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/deletePost", NumberFormatException.class.getName(), "postId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Post post = postService.findPostById(postId);
         if(Objects.equals(post.getUser().getId(), user.getId())){
@@ -115,7 +121,7 @@ public class PostController {
             if(postId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/post", "postId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/post", NumberFormatException.class.getName(), "postId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Post post = postService.findPostById(postId);
         return new ResponseEntity<>(PostDto.createPostDto(post), HttpStatus.OK);
@@ -153,8 +159,13 @@ public class PostController {
     })
 
     @PutMapping("/changePost")
-    public ResponseEntity<?> changePost(@RequestPart(value = "postId") String id, @RequestPart(value = "image", required = false) MultipartFile[] files, @RequestPart(value = "post") PostDto postDto, Principal principal) throws IOException {//TODO Exception
+    public ResponseEntity<?> changePost(@RequestPart(value = "postId", required = false) String id, @RequestPart(value = "image", required = false) MultipartFile[] files, @RequestPart(value = "post", required = false) PostDto postDto, Principal principal) {
         User user = userService.findUserByUserName(principal.getName());
+
+        if(postDto == null)
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/createPost", MultipartException.class.getName(), "Required parameter: 'post' is missing!"), HttpStatus.BAD_REQUEST);
+        if(id == null)
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/createPost", MultipartException.class.getName(), "Required parameter: 'postId' is missing!"), HttpStatus.BAD_REQUEST);
 
         long postId;
         try{
@@ -162,7 +173,7 @@ public class PostController {
             if(postId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/changePost", "postId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/changePost", NumberFormatException.class.getName(), "postId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Post post = postService.findPostById(postId);
         if(Objects.equals(post.getUser().getId(), user.getId())){
@@ -177,10 +188,10 @@ public class PostController {
                     try{
                         images.add(imageService.uploadImage(files[i]));//load new images
                     }catch (NullPointerException ex){
-                        return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/changePost", "Can not read File number: '" + ++i + "' file is NULL!"), HttpStatus.BAD_REQUEST);
+                        return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, NullPointerException.class.getName(), "/changePost", "Can not read File number: '" + ++i + "' file is NULL!"), HttpStatus.BAD_REQUEST);
                     }
                     catch (IOException ex){
-                        return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/changePost", "Can not read File number: '" + files[i].getOriginalFilename() + "' file is damaged!"), HttpStatus.BAD_REQUEST);
+                        return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/changePost", IOException.class.getName(), "Can not read File number: '" + files[i].getOriginalFilename() + "' file is damaged!"), HttpStatus.BAD_REQUEST);
                     }
                 }
             post.setHeader(postDto.getHeader());
@@ -190,7 +201,7 @@ public class PostController {
 
             return new ResponseEntity<>(PostDto.createPostDto(post), HttpStatus.OK);
         }else
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.METHOD_NOT_ALLOWED, "Not Allowed action!", "You can change only your own post."), HttpStatus.METHOD_NOT_ALLOWED);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.METHOD_NOT_ALLOWED, "Not Allowed action!", WrongOwnerException.class.getName(), "You can change only your own post."), HttpStatus.METHOD_NOT_ALLOWED);
     }
 
 }
