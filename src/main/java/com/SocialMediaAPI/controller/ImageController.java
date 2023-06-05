@@ -38,10 +38,10 @@ public class ImageController {
             try {
                 uploadImages[i] = ImageDto.createImageDto(imageService.uploadImage(files[i]));
             }catch (NullPointerException ex){
-                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/uploadImage", "Can not read File number: '" + ++i + "' file is NULL!"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/uploadImage", NullPointerException.class.getName(), "Can not read File number: '" + ++i + "' file is NULL!"), HttpStatus.BAD_REQUEST);
             }
             catch (IOException ex){
-                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/uploadImage", "Can not read File number: '" + files[i].getOriginalFilename() + "' file is damaged!"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/uploadImage", IOException.class.getName(), "Can not read File number: '" + files[i].getOriginalFilename() + "' file is damaged!"), HttpStatus.BAD_REQUEST);
             }
         }
         return new ResponseEntity<>(new ApiResponseArrayOk<>("Images Uploaded!", uploadImages), HttpStatus.OK);
@@ -64,7 +64,7 @@ public class ImageController {
             if(imageId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/download", "imageId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, NumberFormatException.class.getName(), "/download", "imageId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
         byte[] imageData = imageService.downloadImage(imageId);
         return ResponseEntity.status(HttpStatus.OK)

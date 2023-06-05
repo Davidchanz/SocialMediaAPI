@@ -62,13 +62,13 @@ public class ActivityFeedController {
             try {
                 int pageNum = Integer.parseInt(page);
                 if(pageNum < 1)
-                    throw new NumberFormatException();
+                    throw new NumberFormatException("");
                 int maxPageNumber = activityFeedService.getMaxPageNumber(user, pageSize);
                 if(pageNum > maxPageNumber)
                     pageNum = maxPageNumber;
-                pageable = PageRequest.of(pageNum - 1, pageSize);
-            } catch (NumberFormatException ex) {
-                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/feed","Page param is not valid number."), HttpStatus.BAD_REQUEST);
+                pageable = PageRequest.of(pageNum, pageSize);
+            } catch (IllegalArgumentException ex) {
+                return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/feed", ex.getClass().getName(), ex.getMessage()), HttpStatus.BAD_REQUEST);
             }
         }
 

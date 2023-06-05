@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.stream.Collectors;
 
-@Service
 public class TokenService {
 
     private final JwtEncoder encoder;

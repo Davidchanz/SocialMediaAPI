@@ -4,6 +4,8 @@ import com.SocialMediaAPI.dto.ApiErrorDto;
 import com.SocialMediaAPI.dto.ApiResponseSingleOk;
 import com.SocialMediaAPI.dto.NotificationDto;
 import com.SocialMediaAPI.dto.UserDto;
+import com.SocialMediaAPI.exception.RepeatActionException;
+import com.SocialMediaAPI.exception.ResourceNotFoundException;
 import com.SocialMediaAPI.model.*;
 import com.SocialMediaAPI.service.ChatService;
 import com.SocialMediaAPI.service.NotificationService;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.MethodNotAllowedException;
 
 import java.security.Principal;
 import java.util.ArrayList;
@@ -60,10 +63,10 @@ public class UserController {
         User potentialFriend = userService.findUserByUserName(username);
 
         if(user.getFriends().contains(potentialFriend))
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite","You are already a friend with " + potentialFriend.getUsername()), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite", RepeatActionException.class.getName(), "You are already a friend with " + potentialFriend.getUsername()), HttpStatus.CONFLICT);
 
         if(Objects.equals(user.getId(), potentialFriend.getId()))
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite","You can't be a friend with your self!"), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite", RepeatActionException.class.getName(), "You can't be a friend with your self!"), HttpStatus.CONFLICT);
 
         if(!notificationService.isInviteExist(user, potentialFriend)
                 && !notificationService.isInviteExist(potentialFriend, user)) {
@@ -86,7 +89,7 @@ public class UserController {
                     HttpStatus.OK);
         }else {
             return new ResponseEntity<>(
-                    new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite","User: "
+                    new ApiErrorDto(HttpStatus.CONFLICT, "/friend/invite", RepeatActionException.class.getName(), "User: "
                             + user.getUsername()
                             + " already sent friend invite to user: "
                             + potentialFriend.getUsername()),
@@ -114,7 +117,7 @@ public class UserController {
             if(inviteId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/friend/invite/reject", "inviteId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/friend/invite/reject", NumberFormatException.class.getName(), "inviteId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
         Notification notification = notificationService.findNotificationById(inviteId);
 
@@ -124,7 +127,7 @@ public class UserController {
             return new ResponseEntity<>(new ApiResponseSingleOk("Reject Friend Invite", "Invite rejected!"), HttpStatus.OK);
         }
         else
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.NOT_FOUND, "/friend/invite/reject","Invite with id: " + id + " not found!"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.NOT_FOUND, "/friend/invite/reject", ResourceNotFoundException.class.getName(), "Invite with id: " + id + " not found!"), HttpStatus.NOT_FOUND);
     }
 
     @Operation(summary = "Accept Friend Invite and create Chat with him")
@@ -147,7 +150,7 @@ public class UserController {
             if(inviteId < 0)
                 throw new NumberFormatException();
         }catch (NumberFormatException ex){
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/friend/invite/accept", "inviteId param is not valid number."), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.BAD_REQUEST, "/friend/invite/accept", NumberFormatException.class.getName(), "inviteId param is not valid number."), HttpStatus.BAD_REQUEST);
         }
 
         Notification notification = notificationService.findNotificationById(inviteId);
@@ -172,7 +175,7 @@ public class UserController {
             return new ResponseEntity<>(new ApiResponseSingleOk("Accepted Friend Invite", "Invite accepted!"), HttpStatus.OK);
         }
         else
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.NOT_FOUND, "/friend/invite/accept","Invite with id: " + id + " not found!"), HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.NOT_FOUND, "/friend/invite/accept", ResourceNotFoundException.class.getName(), "Invite with id: " + id + " not found!"), HttpStatus.NOT_FOUND);
     }
 
     @Operation(summary = "Subscribe on User")
@@ -194,7 +197,7 @@ public class UserController {
             userService.subscribe(user, publisher);
             return new ResponseEntity<>(new ApiResponseSingleOk("Subscribe", "You subscribed on " + publisher.getUsername()), HttpStatus.OK);
         }else
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/subscribe","You already subscribed on " + publisher.getUsername()), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/subscribe", RepeatActionException.class.getName(), "You already subscribed on " + publisher.getUsername()), HttpStatus.CONFLICT);
     }
 
     @Operation(summary = "UnSubscribe from User")
@@ -216,7 +219,7 @@ public class UserController {
             userService.unSubscribe(user, publisher);
             return new ResponseEntity<>(new ApiResponseSingleOk("UnSubscribe", "You unsubscribed from " + publisher.getUsername()), HttpStatus.OK);
         }else
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/unSubscribe","You are not subscribed on " + publisher.getUsername() + " yet"), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/unSubscribe", MethodNotAllowedException.class.getName(), "You are not subscribed on " + publisher.getUsername() + " yet"), HttpStatus.CONFLICT);
     }
 
     @Operation(summary = "Remove User from Friend list and remove Chat with him")
@@ -239,7 +242,7 @@ public class UserController {
             chatService.deleteChat(user, friend);
             return new ResponseEntity<>(new ApiResponseSingleOk("Remove Friend", "You removed " + friend.getUsername() + " from your friend list and publisher list"), HttpStatus.OK);
         }else
-            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/remove","You are not friend with " + friend.getUsername()), HttpStatus.CONFLICT);
+            return new ResponseEntity<>(new ApiErrorDto(HttpStatus.CONFLICT, "/friend/remove", MethodNotAllowedException.class.getName(), "You are not friend with " + friend.getUsername()), HttpStatus.CONFLICT);
     }
 
     @Operation(summary = "Get all user's notifications")

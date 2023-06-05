@@ -25,15 +25,22 @@ public class ApiErrorDto {
     private String instance;
 
     @NotNull
-    private Instant created;
+    private Instant created = Instant.now();
 
     @NotNull
-    private List<String> errors = new ArrayList<>();
+    private List<ErrorDto> errors = new ArrayList<>();
 
-    public ApiErrorDto(HttpStatus httpStatus, String instance, String... errors){
+    public ApiErrorDto(HttpStatus httpStatus, String instance, ErrorDto... errors){
         this.title = httpStatus.name();
         this.status = httpStatus.value();
         this.instance = instance;
         this.errors = List.of(errors);
+    }
+
+    public ApiErrorDto(HttpStatus httpStatus, String instance, String error, String description){
+        this.title = httpStatus.name();
+        this.status = httpStatus.value();
+        this.instance = instance;
+        this.errors = List.of(new ErrorDto(error, description));
     }
 }

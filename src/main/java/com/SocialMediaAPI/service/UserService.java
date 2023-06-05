@@ -3,6 +3,7 @@ package com.SocialMediaAPI.service;
 import com.SocialMediaAPI.exception.EmailAlreadyExistException;
 import com.SocialMediaAPI.exception.UserAlreadyExistException;
 import com.SocialMediaAPI.model.Chat;
+import com.SocialMediaAPI.model.CustomUserDetails;
 import com.SocialMediaAPI.model.Notification;
 import com.SocialMediaAPI.model.User;
 import com.SocialMediaAPI.repository.UserRepository;
@@ -21,13 +22,9 @@ import java.util.Optional;
 
 @Transactional
 @Service
-public class UserService implements UserDetailsService {
+public class UserService {
     @Autowired
     private UserRepository userRepository;
-
-    public User saveUser(User user){
-        return userRepository.save(user);
-    }
 
     private boolean userExists(String username) {
         return userRepository.findByUsername(username).isPresent();
@@ -46,22 +43,7 @@ public class UserService implements UserDetailsService {
         userRepository.save(notification.getTo());
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User loadedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Could not found a user with given name"));
-        return new org.springframework.security.core.userdetails.User(
-                loadedUser.getUsername(),
-                loadedUser.getPassword(),
-                loadedUser.isEnabled(),
-                loadedUser.isAccountNonExpired(),
-                loadedUser.isCredentialsNonExpired(),
-                loadedUser.isAccountNonLocked(),
-                Collections.singleton(new SimpleGrantedAuthority("read"))//TODO
-        );
-    }
-
-    public User registerNewUserAccount(User user) throws UserAlreadyExistException {
+    public void registerNewUserAccount(User user) throws UserAlreadyExistException {
         if (userExists(user.getUsername())) {
             throw new UserAlreadyExistException("User with username: '"
                     + user.getUsername() + "' is already exist!");
@@ -74,9 +56,7 @@ public class UserService implements UserDetailsService {
 
         user.setPassword(encryptPassword(user.getPassword()));
 
-        //user.setRoles(List.of("ROLE_USER"));
-
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
     private boolean emailExists(String email) {
