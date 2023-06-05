@@ -158,7 +158,7 @@ public class PostController {
             )
     })
 
-    @PutMapping("/changePost")
+    @PostMapping("/changePost")
     public ResponseEntity<?> changePost(@RequestPart(value = "postId", required = false) String id, @RequestPart(value = "image", required = false) MultipartFile[] files, @RequestPart(value = "post", required = false) PostDto postDto, Principal principal) {
         User user = userService.findUserByUserName(principal.getName());
 

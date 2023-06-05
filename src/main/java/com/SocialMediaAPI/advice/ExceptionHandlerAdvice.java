@@ -7,6 +7,7 @@ import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededExceptio
 import org.springframework.http.*;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,8 +67,11 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     protected ResponseEntity<Object> handleConflict(
             RuntimeException ex, WebRequest request) {
-        String bodyOfResponse = ex.getMessage();
-        return handleExceptionInternal(ex, bodyOfResponse, new HttpHeaders(), HttpStatus.CONFLICT, request);
+        ApiErrorDto errorDto = new ApiErrorDto(HttpStatus.BAD_REQUEST,
+                ((ServletWebRequest)request).getRequest().getRequestURI().toString(),
+                new ErrorDto(ex.getClass().getName(), ex.getMessage())
+        );
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(value = {FileSizeLimitExceededException.class})
@@ -111,14 +115,14 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
-    @Override
+   /* @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ApiErrorDto errorDto = new ApiErrorDto(HttpStatus.BAD_REQUEST,
                 ((ServletWebRequest)request).getRequest().getRequestURI().toString(),
                 new ErrorDto(ex.getClass().getName(), "Required body param missing!")
         );
         return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
-    }
+    }*/
 
     @ExceptionHandler(value = {
             InvalidTokenRequestException.class
@@ -153,5 +157,14 @@ public class ExceptionHandlerAdvice extends ResponseEntityExceptionHandler {
                 new ErrorDto(ex.getClass().getName(), ex.getMessage())
         );
         return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ApiErrorDto errorDto = new ApiErrorDto(HttpStatus.METHOD_NOT_ALLOWED,
+                ((ServletWebRequest)request).getRequest().getRequestURI().toString(),
+                new ErrorDto(ex.getClass().getName(), ex.getMessage())
+        );
+        return handleExceptionInternal(ex, errorDto, new HttpHeaders(), HttpStatus.METHOD_NOT_ALLOWED, request);
     }
 }

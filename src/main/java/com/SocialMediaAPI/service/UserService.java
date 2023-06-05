@@ -59,6 +59,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void deleteByUsername(String username){
+        userRepository.deleteByUsername(username);
+    }
+
     private boolean emailExists(String email) {
         return userRepository.findByEmail(email).isPresent();
     }

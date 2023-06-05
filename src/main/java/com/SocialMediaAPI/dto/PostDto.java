@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,38 +18,31 @@ import java.util.stream.Collectors;
 
 @Getter
 @Setter
-@Builder
 public class PostDto {
-    @NotNull
-    private Long id;
+    private Long id = null;
 
-    @NotNull
     private String header;
 
-    @NotNull
     private String text;
 
-    @NotNull
-    private Instant created;
+    private Instant created = null;
 
-    @NotNull
     private List<ImageDto> images = new ArrayList<>();
 
-    @NotNull
-    private UserDto user;
+    private UserDto user = null;
 
     public static PostDto createPostDto(Post post){
-        return PostDto.builder()
-                .id(post.getId())
-                .header(post.getHeader())
-                .text(post.getText())
-                .created(post.getCreated())
-                .user((UserDto) UserDto.createUserDto(post.getUser()))
-                .images(post.getImages()
-                        .stream()
-                        .map(ImageDto::createImageDto)
-                        .collect(Collectors.toList())
-                )
-                .build();
+        PostDto postDto = new PostDto();
+        postDto.setId(post.getId());
+        postDto.setHeader(post.getHeader());
+        postDto.setText(post.getText());
+        postDto.setCreated(post.getCreated());
+        postDto.setUser((UserDto) UserDto.createUserDto(post.getUser()));
+        postDto.setImages(post.getImages()
+                .stream()
+                .map(ImageDto::createImageDto)
+                .collect(Collectors.toList())
+        );
+        return postDto;
     }
 }

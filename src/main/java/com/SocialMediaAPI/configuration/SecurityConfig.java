@@ -38,6 +38,7 @@ public class SecurityConfig {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Autowired
     public SecurityConfig(CustomUserDetailsService userDetailService, JwtAuthenticationEntryPoint jwtEntryPoint) {
         this.userDetailService = userDetailService;
